@@ -1,3 +1,7 @@
+/*
+ * Elbekov Fozil
+ * 3/21/2019
+ * */
 package com.wrox;
 
 
@@ -27,22 +31,25 @@ public class LoginServlet extends HttpServlet
         //userDatabase.put("John", "green");
     	// open database connection
     	try {
-        Connection conn = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/customersupport", "root", "password");
+    		Class.forName("com.mysql.jdbc.Driver"); 
+    		Connection conn = DriverManager.getConnection(
+    				"jdbc:mysql://localhost:3306/customersupport", "root", "password");
+    		// try to find a row where the username and password match
 
-        // try to find a row where the username and password match
-        
-            Statement stmt = conn.createStatement();
-            ResultSet rslt = stmt.executeQuery(
-            "SELECT * FROM users");
+    		Statement stmt = conn.createStatement();
+    		ResultSet rslt = stmt.executeQuery(
+    				"SELECT * FROM User");
 
-            // no rows match, login is bad
-            while(rslt.next())
-            	userDatabase.put(rslt.getString(2), rslt.getString(5));
-                conn.close();        
+    		// no rows match, login is bad
+    		while(rslt.next())
+    			userDatabase.put(rslt.getString(2), rslt.getString(5));
+    		conn.close();        
         } catch(SQLException e) {
-            System.out.println(e.getMessage()); 
-        }
+            System.out.println(e); 
+        } catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
     }
 
@@ -83,9 +90,9 @@ public class LoginServlet extends HttpServlet
         String password = request.getParameter("password");
         
      // verify that the username and password aren't empty
-        if(username == null || password == null)
-                // || !LoginServlet.userDatabase.containsKey(username) ||
-                //!password.equals(LoginServlet.userDatabase.get(username)))
+        if(username == null || password == null
+                || !LoginServlet.userDatabase.containsKey(username) ||
+               !password.equals(LoginServlet.userDatabase.get(username)))
         {
             request.setAttribute("loginFailed", true);
             request.getRequestDispatcher("/WEB-INF/jsp/view/login.jsp")
