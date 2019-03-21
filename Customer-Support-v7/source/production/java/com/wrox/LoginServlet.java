@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
+import java.sql.*;
 
 @WebServlet(
         name = "loginServlet",
@@ -20,10 +21,29 @@ public class LoginServlet extends HttpServlet
     private static final Map<String, String> userDatabase = new Hashtable<>();
 
     static {
-        userDatabase.put("Nicholas", "password");
-        userDatabase.put("Sarah", "drowssap");
-        userDatabase.put("Mike", "wordpass");
-        userDatabase.put("John", "green");
+        //userDatabase.put("Nicholas", "password");
+        //userDatabase.put("Sarah", "drowssap");
+        //userDatabase.put("Mike", "wordpass");
+        //userDatabase.put("John", "green");
+    	// open database connection
+    	try {
+        Connection conn = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/customersupport", "root", "password");
+
+        // try to find a row where the username and password match
+        
+            Statement stmt = conn.createStatement();
+            ResultSet rslt = stmt.executeQuery(
+            "SELECT * FROM users");
+
+            // no rows match, login is bad
+            while(rslt.next())
+            	userDatabase.put(rslt.getString(2), rslt.getString(5));
+                conn.close();        
+        } catch(SQLException e) {
+            System.out.println(e.getMessage()); 
+        }
+        
     }
 
     @Override
@@ -61,9 +81,11 @@ public class LoginServlet extends HttpServlet
 
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        if(username == null || password == null ||
-                !LoginServlet.userDatabase.containsKey(username) ||
-                !password.equals(LoginServlet.userDatabase.get(username)))
+        
+     // verify that the username and password aren't empty
+        if(username == null || password == null)
+                // || !LoginServlet.userDatabase.containsKey(username) ||
+                //!password.equals(LoginServlet.userDatabase.get(username)))
         {
             request.setAttribute("loginFailed", true);
             request.getRequestDispatcher("/WEB-INF/jsp/view/login.jsp")
@@ -74,6 +96,7 @@ public class LoginServlet extends HttpServlet
             session.setAttribute("username", username);
             request.changeSessionId();
             response.sendRedirect("tickets");
-        }
+        }   
+        
     }
 }
